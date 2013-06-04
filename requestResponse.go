@@ -10,7 +10,7 @@ const (
 )
 
 func init() {
-	RequestInitHook(moduleRequestInit)
+	AddRequestInitHook(moduleRequestInit)
 }
 
 func moduleRequestInit(w http.ResponseWriter, r *http.Request, c *Context) error {

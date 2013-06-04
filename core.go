@@ -11,14 +11,13 @@ type ActionResult interface {
 }
 
 type RequestHandler func(*Context) (ActionResult, error)
+
 type RequestInitHookFunc func(http.ResponseWriter, *http.Request, *Context) error
 
 var requestInitHooks []RequestInitHookFunc
-var globalActionHooks []ActionHook
 
 func init() {
 	requestInitHooks = make([]RequestInitHookFunc, 0)
-	globalActionHooks = make([]ActionHook, 0)
 }
 
 func AddRequestInitHook(hook RequestInitHookFunc) {
@@ -46,16 +45,19 @@ func callModuleRequestInitHooks(w http.ResponseWriter, r *http.Request, c *Conte
 	return nil
 }
 
-func handleRequest(w http.ResponseWriter, r *http.RequestHandler, h RequestHandler) error {
+func handleRequest(w http.ResponseWriter, r *http.Request, h RequestHandler) error {
 	c := newContext()
+	result, err := h(c)
 	
-	if result, err := h(c); err != nil {
-		return err;
+	if err != nil { 
+		return err
 	}
-
-	if err := result.Execute(w, r, c); err != nil {
-		return err;
+	
+	if result == nil {
+		return errors.New("No result returned from RequestHandler")
 	}
+	
+	return result.Execute(w, r, c)	
 }
 
 func createRequestHandler(h RequestHandler) http.HandlerFunc {
