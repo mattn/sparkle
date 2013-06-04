@@ -4,8 +4,7 @@ import (
 	"github.com/gorilla/securecookie"
 	"net/http"
 	"encoding/gob"
-	"sparkle"
-	"errors"
+	"sparkle"	
 	"strings"
 )
 
@@ -31,12 +30,13 @@ func AuthInit() {
 }
 
 func authInitRequestHook(w http.ResponseWriter, r *http.Request, c *sparkle.Context) error {
-	if cookie, err := r.Cookie(authCookieName); err != nil {		
-		return nil;
+	cookie, err := r.Cookie(authCookieName)
+	if err != nil {
+		return nil
 	}
 
 	value := &authData{}
-	if err = sc.Decode(authCookieName, cookie.Value, &value); err != nil {
+	if err := sc.Decode(authCookieName, cookie.Value, &value); err != nil {
 		// Despite decoding failing, we'll assume this just means we're not authenticated
 		// So no need to return an error
 		return nil
@@ -45,7 +45,7 @@ func authInitRequestHook(w http.ResponseWriter, r *http.Request, c *sparkle.Cont
 	c.Set(authDataKey, value)
 }
 
-func (r *http.Request) getUserIP() string {
+func getUserIP(r *http.Request) string {
 	var portSeperatorIndex = strings.Index(r.RemoteAddr, ":")	
 	if (portSeperatorIndex == -1) {
 		return r.RemoteAddr
@@ -54,9 +54,9 @@ func (r *http.Request) getUserIP() string {
 	}
 }
 
-func (a *sparkle.AuthData) isValid(r *http.Request) {
-	return r.getUserIP() == a.Addr 
-		&& UserIdentifier != nil
+func (a *authData) isValid(r *http.Request) bool {
+	return getUserIP(r) == a.Addr &&
+		   a.UserIdentifier != ""
 }
 
 func (c *sparkle.Context) getAuthData() *authData {
@@ -71,7 +71,7 @@ func (c *sparkle.Context) getAuthData() *authData {
 
 // Returns a boolean indictating whether the current context can be considered
 // authenticated
-func (c *sparkle.Context) IsAuthenticated() bool {
+func IsAuthenticated(c *sparkle.Context) bool {
 	if auth := c.Get(authDataKey); auth == nil {
 		return false
 	}
@@ -81,7 +81,7 @@ func (c *sparkle.Context) IsAuthenticated() bool {
 
 // Get the user identifier of the authenticated user, or nil if there is no 
 // authenticated user
-func (c *sparkle.Context) AuthenticatedAs() string {
+func AuthenticatedAs(c *sparkle.Context) string {
 	if auth := c.Get(authDataKey); auth == nil {
 		return nil
 	}
@@ -94,11 +94,11 @@ func (c *sparkle.Context) AuthenticatedAs() string {
 }
 
 // Sets an Authentication Cookie for a given path, and userIdentifier
-func (c *sparkle.Context) Authenticate(path string, userIdentifier string) error {
+func Authenticate(c *sparkle.Context, path string, userIdentifier string) error {
 	r := c.Request()
 	w := c.ResponseWriter()
 
-	var value := &authData{ userIdentifier, r.getUserIP() }
+	value := &authData{ userIdentifier, r.getUserIP() }
 	if encoded, err := s.Encode(authCookieName, value); err != nil {
 		return error
 	}
