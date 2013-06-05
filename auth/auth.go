@@ -43,15 +43,16 @@ func authInitRequestHook(w http.ResponseWriter, r *http.Request, c *sparkle.Cont
 	}
 
 	c.Set(authDataKey, value)
+	return nil
 }
 
 func getUserIP(r *http.Request) string {
 	var portSeperatorIndex = strings.Index(r.RemoteAddr, ":")	
 	if (portSeperatorIndex == -1) {
 		return r.RemoteAddr
-	} else {
-		return r.RemoteAddr[:portSeperatorIndex]
 	}
+
+	return r.RemoteAddr[:portSeperatorIndex]	
 }
 
 func (a *authData) isValid(r *http.Request) bool {
@@ -59,35 +60,35 @@ func (a *authData) isValid(r *http.Request) bool {
 		   a.UserIdentifier != ""
 }
 
-func (c *sparkle.Context) getAuthData() *authData {
-	data = c.Get(authDataKey)
+func getAuthData(c *sparkle.Context) *authData {
+	data := c.Get(authDataKey)
 
-	if result, ok := data.(authData); !ok {
+	result, ok := data.(*authData);
+	if !ok {
 		return nil
 	}
 
-	return result;
+	return result
 }
 
 // Returns a boolean indictating whether the current context can be considered
 // authenticated
 func IsAuthenticated(c *sparkle.Context) bool {
-	if auth := c.Get(authDataKey); auth == nil {
+	auth := getAuthData(c)
+	if auth == nil {
 		return false
 	}
 
-	return auth.isValid()
+	return auth.isValid(c.Request())
 }
 
 // Get the user identifier of the authenticated user, or nil if there is no 
 // authenticated user
 func AuthenticatedAs(c *sparkle.Context) string {
-	if auth := c.Get(authDataKey); auth == nil {
-		return nil
-	}
+	auth := getAuthData(c)
 
-	if !auth.isValid() {
-		return nil
+	if auth == nil || !auth.isValid(c.Request()) {
+		return ""
 	}
 
 	return auth.UserIdentifier
@@ -98,9 +99,10 @@ func Authenticate(c *sparkle.Context, path string, userIdentifier string) error 
 	r := c.Request()
 	w := c.ResponseWriter()
 
-	value := &authData{ userIdentifier, r.getUserIP() }
-	if encoded, err := s.Encode(authCookieName, value); err != nil {
-		return error
+	value := &authData{ userIdentifier, getUserIP(r) }
+	encoded, err := sc.Encode(authCookieName, value) 
+	if err != nil {
+		return err
 	}
 
 	http.SetCookie(w, &http.Cookie{
@@ -109,5 +111,6 @@ func Authenticate(c *sparkle.Context, path string, userIdentifier string) error 
 		Path: path,
 	})
 
-	c.Set(authDataKey, auth)
+	c.Set(authDataKey, value)
+	return nil
 }
