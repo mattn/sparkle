@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	contextRequestKey string = "Sparkle.Request"
+	contextRequestKey        string = "Sparkle.Request"
 	contextResponseWriterKey string = "Sparkle.ResponseWriter"
 )
 
@@ -34,5 +34,5 @@ func (c *Context) ResponseWriter() http.ResponseWriter {
 	if !ok {
 		return nil
 	}
-	return r;
+	return r
 }

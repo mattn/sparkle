@@ -1,9 +1,9 @@
 package sparkle
 
-import ( 
-	"net/http"
-	"fmt"
+import (
 	"errors"
+	"fmt"
+	"net/http"
 )
 
 type ActionResult interface {
@@ -36,9 +36,9 @@ func callErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 func callModuleRequestInitHooks(w http.ResponseWriter, r *http.Request, c *Context) error {
-	for _, v := range(requestInitHooks) {
+	for _, v := range requestInitHooks {
 		err := v(w, r, c)
-		if (err != nil) {
+		if err != nil {
 			return err
 		}
 	}
@@ -48,23 +48,22 @@ func callModuleRequestInitHooks(w http.ResponseWriter, r *http.Request, c *Conte
 func handleRequest(w http.ResponseWriter, r *http.Request, h RequestHandler) error {
 	c := newContext()
 	result, err := h(c)
-	
-	if err != nil { 
+
+	if err != nil {
 		return err
 	}
-	
+
 	if result == nil {
 		return errors.New("No result returned from RequestHandler")
 	}
-	
-	return result.Execute(w, r, c)	
+
+	return result.Execute(w, r, c)
 }
 
 func createRequestHandler(h RequestHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := handleRequest(w, r, h); err != nil {
-			callErrorHandler(w, r, err);
+			callErrorHandler(w, r, err)
 		}
 	}
 }
-

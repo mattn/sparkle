@@ -16,11 +16,8 @@ func (c *Context) Set(key string, value interface{}) {
 
 func (c *Context) Get(key string) interface{} {
 	result, ok := c.data[key]
-
 	if !ok {
 		return nil
 	}
-
-
 	return result
 }

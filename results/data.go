@@ -1,15 +1,15 @@
 package results
 
 import (
-	"io"
-	"sparkle"
 	"bytes"
+	"io"
 	"net/http"
+	"sparkle"
 )
 
 type dataResult struct {
 	contentType string
-	data io.Reader
+	data        io.Reader
 }
 
 func Data(contentType string, data io.Reader) sparkle.ActionResult {
@@ -24,7 +24,7 @@ func (res *dataResult) Execute(w http.ResponseWriter, r *http.Request, c *sparkl
 	w.Header().Add("content-type", res.contentType)
 
 	buffer := make([]byte, 4096)
-	
+
 	for true {
 		read, err := res.data.Read(buffer)
 

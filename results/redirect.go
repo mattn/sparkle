@@ -6,7 +6,7 @@ import (
 )
 
 type redirectResult struct {
-	url string
+	url  string
 	code int
 }
 

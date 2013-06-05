@@ -1,21 +1,21 @@
 package auth
 
 import (
+	"encoding/gob"
 	"github.com/gorilla/securecookie"
 	"net/http"
-	"encoding/gob"
-	"sparkle"	
+	"sparkle"
 	"strings"
 )
 
 const (
-	authDataKey string = "Sparkle.Auth"
+	authDataKey    string = "Sparkle.Auth"
 	authCookieName string = "Sparkle.Auth.Cookie"
 )
 
 type authData struct {
 	UserIdentifier string
-	Addr string
+	Addr           string
 }
 
 var sc *securecookie.SecureCookie
@@ -25,7 +25,7 @@ func init() {
 	sc = securecookie.New(securecookie.GenerateRandomKey(32), securecookie.GenerateRandomKey(32))
 }
 
-func AuthInit() {	
+func AuthInit() {
 	sparkle.AddRequestInitHook(authInitRequestHook)
 }
 
@@ -47,23 +47,23 @@ func authInitRequestHook(w http.ResponseWriter, r *http.Request, c *sparkle.Cont
 }
 
 func getUserIP(r *http.Request) string {
-	var portSeperatorIndex = strings.Index(r.RemoteAddr, ":")	
-	if (portSeperatorIndex == -1) {
+	var portSeperatorIndex = strings.Index(r.RemoteAddr, ":")
+	if portSeperatorIndex == -1 {
 		return r.RemoteAddr
 	}
 
-	return r.RemoteAddr[:portSeperatorIndex]	
+	return r.RemoteAddr[:portSeperatorIndex]
 }
 
 func (a *authData) isValid(r *http.Request) bool {
 	return getUserIP(r) == a.Addr &&
-		   a.UserIdentifier != ""
+		a.UserIdentifier != ""
 }
 
 func getAuthData(c *sparkle.Context) *authData {
 	data := c.Get(authDataKey)
 
-	result, ok := data.(*authData);
+	result, ok := data.(*authData)
 	if !ok {
 		return nil
 	}
@@ -99,16 +99,16 @@ func Authenticate(c *sparkle.Context, path string, userIdentifier string) error 
 	r := c.Request()
 	w := c.ResponseWriter()
 
-	value := &authData{ userIdentifier, getUserIP(r) }
-	encoded, err := sc.Encode(authCookieName, value) 
+	value := &authData{userIdentifier, getUserIP(r)}
+	encoded, err := sc.Encode(authCookieName, value)
 	if err != nil {
 		return err
 	}
 
 	http.SetCookie(w, &http.Cookie{
-		Name: authCookieName,
+		Name:  authCookieName,
 		Value: encoded,
-		Path: path,
+		Path:  path,
 	})
 
 	c.Set(authDataKey, value)
