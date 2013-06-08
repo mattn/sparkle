@@ -36,9 +36,8 @@ func ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
-/* Adds a request handler. By default, the pattern and matching
- * is the same as the DefaultMux used by net/http
- */
+// Adds a request handler. By default, the pattern and matching
+// is the same as the DefaultMux used by net/http
 func AddHandler(pattern string, handler RequestHandler) {
 	http.HandleFunc(pattern, createRequestHandler(handler))
 }

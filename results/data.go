@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"sparkle"
+	"github.com/sekhat/sparkle"
 )
 
 type dataResult struct {

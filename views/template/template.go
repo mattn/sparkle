@@ -3,7 +3,7 @@ package template
 import (
 	ht "html/template"
 	"io"
-	views ".."
+	"github.com/sekhat/sparkle/views"
 )
 
 type templateView struct {

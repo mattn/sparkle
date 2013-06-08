@@ -2,7 +2,7 @@ package results
 
 import (
 	"net/http"
-	sparkle ".."
+	"github.com/sekhat/sparkle"
 )
 
 type redirectResult struct {

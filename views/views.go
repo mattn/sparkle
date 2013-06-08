@@ -22,9 +22,19 @@ func init() {
 //
 func Register(viewName string, view ViewWriter) error {
 	if _, ok := registeredViews[viewName]; ok {
-		return errors.New("A view with that name has already been registered")
+		return errors.New("A ViewWriter with that name has already been registered")
 	}
 
 	registeredViews[viewName] = view
 	return nil
+}
+
+func Get(viewName string) (ViewWriter, error) {
+	view, ok := registeredViews[viewName]
+
+	if !ok {
+		return nil, errors.New("No ViewWriter with that name has been registered")
+	}
+
+	return view
 }

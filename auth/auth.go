@@ -3,8 +3,8 @@ package auth
 import (
 	"encoding/gob"
 	"github.com/gorilla/securecookie"
+	"github.com/sekhat/sparkle"
 	"net/http"
-	sparkle ".."
 	"strings"
 )
 
