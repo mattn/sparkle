@@ -12,10 +12,15 @@ type dataResult struct {
 	data        io.Reader
 }
 
+// Returns an ActionResult that sends data to the client, with the specified 
+// Content-Type header value
 func Data(contentType string, data io.Reader) sparkle.ActionResult {
 	return &dataResult{contentType, data}
 }
 
+// Returns an ActionResult that sends data to the client, with the specified 
+// Content-Type header value
+//
 func Bytes(contentType string, data []byte) sparkle.ActionResult {
 	return Data(contentType, bytes.NewReader(data))
 }

@@ -20,15 +20,27 @@ func init() {
 	requestInitHooks = make([]RequestInitHookFunc, 0)
 }
 
+// Add a Request Initialization Hook
+//
+// Request initialization hooks are called at the start of a request
+//
+// See sparkle/auth as it uses this to retrieve and check and set authentication
+// information before the actual handling of the request begins
 func AddRequestInitHook(hook RequestInitHookFunc) {
 	requestInitHooks = append(requestInitHooks, hook)
 }
+
+// Begins listening for http requests at addr, and hands them
+// to sparkle
 func ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }
 
-func AddHandler(path string, handler RequestHandler) {
-	http.HandleFunc(path, createRequestHandler(handler))
+/* Adds a request handler. By default, the pattern and matching
+ * is the same as the DefaultMux used by net/http
+ */
+func AddHandler(pattern string, handler RequestHandler) {
+	http.HandleFunc(pattern, createRequestHandler(handler))
 }
 
 func callErrorHandler(w http.ResponseWriter, r *http.Request, err error) {

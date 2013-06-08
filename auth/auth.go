@@ -19,13 +19,21 @@ type authData struct {
 }
 
 var sc *securecookie.SecureCookie
+var initialized bool
 
 func init() {
 	gob.Register(&authData{})
 	sc = securecookie.New(securecookie.GenerateRandomKey(32), securecookie.GenerateRandomKey(32))
 }
 
+/* Initializes the auth module
+ */
 func AuthInit() {
+	if initialized {
+		return
+	}
+
+	initialized = true
 	sparkle.AddRequestInitHook(authInitRequestHook)
 }
 
