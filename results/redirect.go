@@ -2,7 +2,7 @@ package results
 
 import (
 	"net/http"
-	"sparkle"
+	sparkle ".."
 )
 
 type redirectResult struct {
@@ -10,8 +10,7 @@ type redirectResult struct {
 	code int
 }
 
-/* Returns an ActionResult that sends a redirection to the client
- */
+// Returns an ActionResult that sends a redirection to the client
 func Redirect(url string, code int) sparkle.ActionResult {
 	return &redirectResult{url, code}
 }

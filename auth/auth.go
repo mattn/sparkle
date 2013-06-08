@@ -4,7 +4,7 @@ import (
 	"encoding/gob"
 	"github.com/gorilla/securecookie"
 	"net/http"
-	"sparkle"
+	sparkle ".."
 	"strings"
 )
 
