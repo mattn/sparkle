@@ -1,13 +1,31 @@
 package sparkle
 
+import (
+	"net/http"
+)
+
 type Context struct {
-	data map[string]interface{}
+	responseWriter http.ResponseWriter
+	request        *http.Request
+	data           map[string]interface{}
 }
 
-func newContext() *Context {
+func newContext(w http.ResponseWriter, r *http.Request) *Context {
 	return &Context{
-		data: make(map[string]interface{}),
+		w,
+		r,
+		make(map[string]interface{}),
 	}
+}
+
+// Gets the response writer associated with the Context
+func (c *Context) ResponseWriter() http.ResponseWriter {
+	return c.responseWriter
+}
+
+// Gets the request associated with the Context
+func (c *Context) Request() *http.Request {
+	return c.request
 }
 
 // Sets a value against a Context with the given key

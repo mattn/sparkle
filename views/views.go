@@ -36,5 +36,5 @@ func Get(viewName string) (ViewWriter, error) {
 		return nil, errors.New("No ViewWriter with that name has been registered")
 	}
 
-	return view
+	return view, nil
 }

@@ -1,7 +1,6 @@
 package results
 
-import (
-	"errors"
+import (	
 	"net/http"
 	"github.com/sekhat/sparkle"
 	"github.com/sekhat/sparkle/views"

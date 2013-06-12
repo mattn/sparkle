@@ -28,7 +28,7 @@ func init() {
 
 /* Initializes the auth module
  */
-func AuthInit() {
+func InitializeModule() {
 	if initialized {
 		return
 	}
@@ -37,8 +37,8 @@ func AuthInit() {
 	sparkle.AddRequestInitHook(authInitRequestHook)
 }
 
-func authInitRequestHook(w http.ResponseWriter, r *http.Request, c *sparkle.Context) error {
-	cookie, err := r.Cookie(authCookieName)
+func authInitRequestHook(c *sparkle.Context) error {
+	cookie, err := c.Request().Cookie(authCookieName)
 	if err != nil {
 		return nil
 	}

@@ -1,8 +1,7 @@
 package sparkle
 
 import (
-	"errors"
-	"fmt"
+	"errors"	
 	"net/http"
 )
 
@@ -10,9 +9,14 @@ type ActionResult interface {
 	Execute(http.ResponseWriter, *http.Request, *Context) error
 }
 
-type RequestHandler func(*Context) (ActionResult, error)
-
-type RequestInitHookFunc func(http.ResponseWriter, *http.Request, *Context) error
+// A Function definition for Request Handlers
+type RequestHandler func(*Context)(ActionResult, error)
+// A Function definition for Request Handler Wrappers
+//
+// A RequestHandlerWrapper is used for 
+type RequestHandlerWrapper func(*Context, RequestHandler)(ActionResult, error)
+// 
+type RequestInitHookFunc func(*Context) error
 
 var requestInitHooks []RequestInitHookFunc
 
@@ -30,6 +34,24 @@ func AddRequestInitHook(hook RequestInitHookFunc) {
 	requestInitHooks = append(requestInitHooks, hook)
 }
 
+
+func applyRequestWrapper(handler RequestHandler, wrapper RequestHandlerWrapper) RequestHandler {
+	return func(c *Context)(ActionResult, error) {
+		return wrapper(c, handler)
+	}
+}
+
+// Applies the Request Wrappers to the given Request Handler
+func ApplyRequestWrappers(handler RequestHandler, wrappers ...RequestHandlerWrapper) RequestHandler {
+	result := handler
+
+	for _, wrapper := range wrappers {
+		result = applyRequestWrapper(handler, wrapper)
+	}
+
+	return result
+}
+
 // Begins listening for http requests at addr, and hands them
 // to sparkle
 func ListenAndServe(addr string) error {
@@ -43,12 +65,12 @@ func AddHandler(pattern string, handler RequestHandler) {
 }
 
 func callErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
-	http.Error(w, fmt.Sprint(err), 503)
+	http.Error(w, err.Error(), http.StatusInternalServerError)	
 }
 
-func callModuleRequestInitHooks(w http.ResponseWriter, r *http.Request, c *Context) error {
+func callModuleRequestInitHooks(c *Context) error {
 	for _, v := range requestInitHooks {
-		err := v(w, r, c)
+		err := v(c)
 		if err != nil {
 			return err
 		}
@@ -57,7 +79,8 @@ func callModuleRequestInitHooks(w http.ResponseWriter, r *http.Request, c *Conte
 }
 
 func handleRequest(w http.ResponseWriter, r *http.Request, h RequestHandler) error {
-	c := newContext()
+	c := newContext(w, r)
+	callModuleRequestInitHooks(c)
 	result, err := h(c)
 
 	if err != nil {
