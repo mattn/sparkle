@@ -20,7 +20,8 @@ func init() {
 func AddRequestInitHook(hook RequestInitHookFunc) {
 	requestInitHooks = append(requestInitHooks, hook)
 }
-
+// ListenAndServe sets up a http socket on a given address and starts
+// listening for incoming requests
 func ListenAndServe(addr string) error {
 	return http.ListenAndServe(addr, nil)
 }

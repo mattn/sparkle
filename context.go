@@ -18,17 +18,17 @@ func newContext(w http.ResponseWriter, r *http.Request) *Context {
 	}
 }
 
-// Gets the response writer associated with the Context
+// ResponseWriter returns the http.ResponseWriter associated with the Context
 func (c *Context) ResponseWriter() http.ResponseWriter {
 	return c.responseWriter
 }
 
-// Gets the request associated with the Context
+// Request returns the http.Request associated with the Context
 func (c *Context) Request() *http.Request {
 	return c.request
 }
 
-// Sets a value against a Context with the given key
+// Set sets a value against a Context with a given key
 //
 // This is primarily there so that extensions can store data
 // against a context
@@ -36,7 +36,7 @@ func (c *Context) Set(key string, value interface{}) {
 	c.data[key] = value
 }
 
-// Gets a value stored against a Context by it's key
+// Get returns the value stored against a Context by it's key
 //
 // If the key does not exist, nil is returned
 func (c *Context) Get(key string) interface{} {
