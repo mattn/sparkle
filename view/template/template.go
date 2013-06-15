@@ -1,9 +1,9 @@
 package template
 
 import (
+	"github.com/sekhat/sparkle/view"
 	ht "html/template"
 	"io"
-	"github.com/sekhat/sparkle/views"
 )
 
 type templateView struct {
@@ -16,7 +16,7 @@ func (v *templateView) Execute(w io.Writer, model interface{}) error {
 
 // Creates a new ViewWriter using html/template as it's implementation,
 // specifing the files to use for the template
-func New(templateFiles ...string) views.ViewWriter {
+func New(templateFiles ...string) view.ViewWriter {
 	return &templateView{
 		ht.Must(ht.ParseFiles(templateFiles...)),
 	}

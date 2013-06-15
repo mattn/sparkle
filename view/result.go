@@ -1,9 +1,8 @@
-package results
+package view
 
-import (	
-	"net/http"
+import (
 	"github.com/sekhat/sparkle"
-	"github.com/sekhat/sparkle/views"
+	"net/http"
 )
 
 type viewResult struct {
@@ -11,11 +10,7 @@ type viewResult struct {
 	model    interface{}
 }
 
-// Returns an Action result for rendering a View.
-//
-// The name is the name of the view writer to use, and model is
-// the type the view writer will use for data when writing it's
-// view
+// View returns an Action result for rendering a ViewWriter.
 func View(name string, model interface{}) sparkle.ActionResult {
 	return &viewResult{
 		name,
@@ -24,7 +19,7 @@ func View(name string, model interface{}) sparkle.ActionResult {
 }
 
 func (res *viewResult) Execute(w http.ResponseWriter, r *http.Request, c *sparkle.Context) error {
-	view, err := views.Get(res.viewName)
+	view, err := Get(res.viewName)
 	if err != nil {
 		return err
 	}
@@ -35,5 +30,3 @@ func (res *viewResult) Execute(w http.ResponseWriter, r *http.Request, c *sparkl
 
 	return view.Execute(w, res.model)
 }
-
-

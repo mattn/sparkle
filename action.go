@@ -1,18 +1,24 @@
 package sparkle
 
 import (
-	"http/net"
+	"net/http"
 )
 
 type ActionResult interface {
 	Execute(http.ResponseWriter, *http.Request, *Context) error
 }
 
-type ActionHandler func(*Context)(ActionResult, error)
-type ActionWrapper func(*Context, ActionHandler)(ActionResult, error)
+type ActionHandler func(*Context) (ActionResult, error)
+type ActionWrapper func(*Context, ActionHandler) (ActionResult, error)
+
+// Adds a request handler. By default, the pattern and matching
+// is the same as the DefaultMux used by net/http
+func Action(pattern string, handler ActionHandler) {
+	http.HandleFunc(pattern, createActionHandler(handler))
+}
 
 func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHandler {
-	return func(c *Context)(ActionResult, error) {
+	return func(c *Context) (ActionResult, error) {
 		return wrapper(c, handler)
 	}
 }
@@ -26,10 +32,4 @@ func ApplyActionWrappers(handler ActionHandler, wrappers ...ActionWrapper) Actio
 	}
 
 	return result
-}
-
-// Adds a request handler. By default, the pattern and matching
-// is the same as the DefaultMux used by net/http
-func Action(pattern string, handler ActionHandler) {
-	http.HandleFunc(pattern, createRequestHandler(handler))
 }
