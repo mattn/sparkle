@@ -11,20 +11,20 @@ type ActionResult interface {
 }
 // ActionHandlers are functions that are called to handle a request in
 // sparkle. They recieve a pointer to a sparkle.Context and can return
-// ActionResults and/or and error.
+// an ActionResult and/or an error.
 //
 // When ActionHandlers return ActionResults (with no error), that ActionResult
 // is later executed (in most cases) in order to write output to the client
 //
-// On errors, the framework executes it's configured errorHandler.
+// On errors, the framework executes it's configured error handler.
 type ActionHandler func(*Context) (ActionResult, error)
-// ActionWrappers are functions used to wrap action handlers in order to perform
-// function prior to or after ActionHandlers.
+// ActionWrappers are functions used to wrap ActionHandlers in order to perform
+// some function prior to or after ActionHandlers.
 //
 // They are given a pointer to a *sparkle.Context and the ActionHandler it's wrapping.
 //
 // Because the ActionWrapper is responsible for calling the ActionHandler, it's possible
-// for the ActionHandler to actually prevent the ActionHandler from being run.
+// for the ActionWrapper to actually prevent the ActionHandler from being run.
 // Since the ActionWrapper also returns an ActionResult, it's also possible for an
 // ActionWrapper to change or subvert the ActionResult to be used.
 type ActionWrapper func(*Context, ActionHandler) (ActionResult, error)
@@ -42,18 +42,19 @@ func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHand
 }
 
 // ApplyActionWrappers applies one or more ActionWrappers to an ActionHandler and returns
-// the a result ActionHandler that will make sure the wrappers are called into.
+// another ActionHandler that will make sure the wrappers are called into.
 //
-// Providing that all ActionWrappers call there supplied ActionHandler, then calling
+// Providing that all ActionWrappers call their supplied ActionHandler, then calling
 //     ApplyActionWrappers(handler, w1, w2, w3)
-// Can be seen as giving a handler that will cause w3 to called, then w2, then w1 and finally handler
+// can be seen as creating an ActionHandler that will cause w3 to called, then w2, then w1 and finally handler
 //
-// An example of an ActionWrapper might be for logging when a certain Action is called.
+// A simple example of an ActionWrapper might be for logging when a certain Action is called.
 //
 //     func LogAction(c *Context, next ActionHandler) (ActionResult, error) {
 //	       log("Action Starting")
 //         res, err := next(c)
 //         log("Action Complete")
+//         return res, err
 //     }
 //
 // And this action wrapper can be applied like so:
