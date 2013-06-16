@@ -1,8 +1,8 @@
 package sparkle
 
 import (
-	"net/http"
 	"errors"
+	"net/http"
 )
 
 type RequestInitHookFunc func(*Context) error
@@ -42,11 +42,11 @@ func createAndInitializeContext(w http.ResponseWriter, r *http.Request) *Context
 }
 
 func callActionHandler(h ActionHandler, c *Context) (ActionResult, error) {
-	result, err := h(c);
+	result, err := h(c)
 
 	if err != nil {
 		return nil, err
-	} 
+	}
 
 	if result == nil {
 		return nil, errors.New("No result returned from ActionHandler")
@@ -66,6 +66,6 @@ func handleRequest(w http.ResponseWriter, r *http.Request, h ActionHandler) {
 
 	if err := result.Execute(w, r, c); err != nil {
 		callErrorHandler(w, r, err)
-		return		
+		return
 	}
 }
