@@ -17,7 +17,7 @@ type ActionResult interface {
 // is later executed (in most cases) in order to write output to the client
 //
 // On errors, the framework executes it's configured error handler.
-type ActionHandler func(*Context) (ActionResult, error)
+type ActionHandler func(*Context)(ActionResult, error)
 // ActionWrappers are functions used to wrap ActionHandlers in order to perform
 // some function prior to or after ActionHandlers.
 //
@@ -27,12 +27,18 @@ type ActionHandler func(*Context) (ActionResult, error)
 // for the ActionWrapper to actually prevent the ActionHandler from being run.
 // Since the ActionWrapper also returns an ActionResult, it's also possible for an
 // ActionWrapper to change or subvert the ActionResult to be used.
-type ActionWrapper func(*Context, ActionHandler) (ActionResult, error)
+type ActionWrapper func(*Context, ActionHandler)(ActionResult, error)
+
+func createActionHttpHandler(h ActionHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handleRequest(w, r, h)
+	}
+}
 // Action adds an ActionHandler to be executed when incoming urls match the given pattern.
 //
 // By default, the pattern matching is the same as the DefaultMux used by net/http
 func Action(pattern string, handler ActionHandler) {
-	http.HandleFunc(pattern, createActionHandler(handler))
+	http.HandleFunc(pattern, createActionHttpHandler(handler))
 }
 
 func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHandler {
@@ -40,7 +46,6 @@ func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHand
 		return wrapper(c, handler)
 	}
 }
-
 // ApplyActionWrappers applies one or more ActionWrappers to an ActionHandler and returns
 // another ActionHandler that will make sure the wrappers are called into.
 //

@@ -1,8 +1,8 @@
 package sparkle
 
 import (
-	"errors"
 	"net/http"
+	"errors"
 )
 
 type RequestInitHookFunc func(*Context) error
@@ -20,11 +20,6 @@ func init() {
 func AddRequestInitHook(hook RequestInitHookFunc) {
 	requestInitHooks = append(requestInitHooks, hook)
 }
-// ListenAndServe sets up a http socket on a given address and starts
-// listening for incoming requests
-func ListenAndServe(addr string) error {
-	return http.ListenAndServe(addr, nil)
-}
 
 func callErrorHandler(w http.ResponseWriter, r *http.Request, err error) {
 	http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -40,26 +35,37 @@ func callModuleRequestInitHooks(c *Context) error {
 	return nil
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request, h ActionHandler) error {
+func createAndInitializeContext(w http.ResponseWriter, r *http.Request) *Context {
 	c := newContext(w, r)
 	callModuleRequestInitHooks(c)
-
-	result, err := h(c)
-	if err != nil {
-		return err
-	}
-
-	if result == nil {
-		return errors.New("No result returned from ActionHandler")
-	}
-
-	return result.Execute(w, r, c)
+	return c
 }
 
-func createActionHandler(h ActionHandler) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := handleRequest(w, r, h); err != nil {
-			callErrorHandler(w, r, err)
-		}
+func callActionHandler(h ActionHandler, c *Context) (ActionResult, error) {
+	result, err := h(c);
+
+	if err != nil {
+		return nil, err
+	} 
+
+	if result == nil {
+		return nil, errors.New("No result returned from ActionHandler")
+	}
+
+	return result, nil
+}
+
+func handleRequest(w http.ResponseWriter, r *http.Request, h ActionHandler) {
+	c := createAndInitializeContext(w, r)
+
+	result, err := callActionHandler(h, c)
+	if err != nil {
+		callErrorHandler(w, r, err)
+		return
+	}
+
+	if err := result.Execute(w, r, c); err != nil {
+		callErrorHandler(w, r, err)
+		return		
 	}
 }
