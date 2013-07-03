@@ -6,6 +6,13 @@ A Simple (hopefully) webframe for Go.
 
 Slowly being written as I work on my own website, contributions welcome.
 
+## My Related Packages
+
+ * github.com/sekhat/simpleauth - Very simple auth module for sparkle.
+
+ * github.com/sekhat/template   - Very simple view engine that uses html/template for
+                                  it's backend
+
 ## Contributing
 
 ### Documentation
