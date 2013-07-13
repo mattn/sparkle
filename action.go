@@ -38,21 +38,29 @@ func createActionHttpHandler(h ActionHandler) http.HandlerFunc {
 	}
 }
 
-// Action adds an ActionHandler to be executed when incoming urls match the given pattern.
-//
-// By default, the pattern matching is the same as the DefaultMux used by net/http
-func Action(pattern string, handler ActionHandler) {
-	http.HandleFunc(pattern, createActionHttpHandler(handler))
-}
-
 func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHandler {
 	return func(c *Context) (ActionResult, error) {
 		return wrapper(c, handler)
 	}
 }
 
-// ApplyActionWrappers applies one or more ActionWrappers to an ActionHandler and returns
-// another ActionHandler that will make sure the wrappers are called into.
+func applyActionWrappers(handler ActionHandler, wrappers ...ActionWrapper) ActionHandler {
+	result := handler
+
+	for _, wrapper := range wrappers {
+		result = applyActionWrapper(handler, wrapper)
+	}
+
+	return result
+}
+
+// Action adds an ActionHandler to be executed when incoming urls match the given pattern.
+//
+// By default, the pattern matching is the same as the DefaultMux used by net/http
+//
+// wrappers allows you to define the Action Wrappers that act as simple wrappers around the
+// ActionHandler allowing them to intercept before or after (or even override and subvert)
+// the supplied ActionHandler
 //
 // Providing that all ActionWrappers call their supplied ActionHandler, then calling
 //     ApplyActionWrappers(handler, w1, w2, w3)
@@ -71,12 +79,9 @@ func applyActionWrapper(handler ActionHandler, wrapper ActionWrapper) ActionHand
 //     func main() {
 //	       sparkle.Action("/MyUrlPattern", sparkle.ApplyActionWrappers(MyHandler, LogAction))
 //     }
-func ApplyActionWrappers(handler ActionHandler, wrappers ...ActionWrapper) ActionHandler {
-	result := handler
-
-	for _, wrapper := range wrappers {
-		result = applyActionWrapper(handler, wrapper)
-	}
-
-	return result
+func Action(pattern string, handler ActionHandler, wrappers ...ActionWrapper) {
+	http.HandleFunc(
+		pattern,
+		createActionHttpHandler(
+			applyActionWrappers(handler, wrappers...)))
 }
