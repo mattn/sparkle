@@ -61,6 +61,10 @@ func getFieldAndKind(rt reflect.Value, fieldName string) (reflect.Value, reflect
 
 // Unmarshals Query and Post parameters to an object supplied in v
 // 
+// If a parameter doesn't have a corresponding field in the struct, it is 
+// ignored. If the struct has a field that doesn't have a corresponding 
+// parameter, then the struct field will not be altered.
+//
 // If successful returns nil with the values in v set accordingly
 // Returns ErrNilUnmarshalTarget if v was nil
 // Returns ErrNotPointerTarget if v was not a pointer
