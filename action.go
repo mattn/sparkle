@@ -63,8 +63,9 @@ func applyActionWrappers(handler ActionHandler, wrappers ...ActionWrapper) Actio
 // the supplied ActionHandler
 //
 // Providing that all ActionWrappers call their supplied ActionHandler, then calling
-//     ApplyActionWrappers(handler, w1, w2, w3)
-// can be seen as creating an ActionHandler that will cause w3 to called, then w2, then w1 and finally handler
+//     Action("/", handler, w1, w2, w3)
+// will call w3, passing in a closure that calls w2 with a closure that calls w1 with a closure
+// that calls handler, when the path / is matched
 //
 // A simple example of an ActionWrapper might be for logging when a certain Action is called.
 //
