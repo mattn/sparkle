@@ -7,6 +7,9 @@ import (
 	"strconv"
 )
 
+type KeyValueStringMap map[string]string
+type ParamValueProvider func(c *Context) (KeyValueStringMap, error)
+
 var ErrNilUnmarshalTarget = errors.New("Passed nil object as unmarshal target")
 var ErrNotPointerTarget = errors.New("Target is not a pointer")
 var ErrNotStructTarget = errors.New("Target pointer does not point to struct")
@@ -14,6 +17,21 @@ var ErrCouldNotGetContextRequest = errors.New("Could not obtain request from con
 var ErrUnsupportedType = errors.New("Can not unmarshall to field type as it is unsupported")
 
 var maxMemoryForMultipartForm int64
+var currentValueProvider ParamValueProvider = FormValueProvider
+
+func FormValueProvider(c *Context) (KeyValueStringMap, error) {
+	request := c.Request()
+	if request == nil {
+		// Should never happen
+		return nil, ErrCouldNotGetContextRequest
+	}
+
+	if err := parseFormData(request); err != nil {
+		return nil, err
+	}
+
+	return request.Form, nil
+}
 
 // Sets the Max Memory to be used when UnmarshalParameters encounters a
 // multipart form.
@@ -75,20 +93,15 @@ func (c *Context) UnmarshalParameters(v interface{}) error {
 		return err
 	}
 
-	request := c.Request()
-	if request == nil {
-		// Should never happen
-		return ErrCouldNotGetContextRequest
-	}
+	rt := reflect.ValueOf(v).Elem()
 
-	if err := parseFormData(request); err != nil {
+	valueMap, err := currentValueProvider(c)
+	if err != nil {
 		return err
 	}
 
-	rt := reflect.ValueOf(v).Elem()
-
 	// Okay, so we should step through the values in the form now
-	for key, value := range request.Form {
+	for key, value := range valueMap {
 		fieldValue, fieldKind := getFieldAndKind(rt, key)
 
 		// if we can't set the result, then ignore it
