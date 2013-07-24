@@ -13,21 +13,10 @@ var ErrNotStructTarget = errors.New("Target pointer does not point to struct")
 var ErrCouldNotGetContextRequest = errors.New("Could not obtain request from context")
 var ErrUnsupportedType = errors.New("Can not unmarshall to field type as it is unsupported")
 
-// A map type that has both string keys and values
-type KeyValueStringMap map[string]string
-
-// An interface that supplies UnmarshalParameters with the data in which
-// to unmarshal
-type ParameterValueProvider interface {
-	Values(c *Context) (KeyValueStringMap, error)
-}
-
 // A ValueProvider that provides values from the current request query string and
 // form inputs
-type FormValueProvider struct{}
-
-var maxMemoryForMultipartForm int64
 var currentValueProvider ParameterValueProvider
+var maxMemoryForMultipartForm int64
 
 func init() {
 	currentValueProvider = &FormValueProvider{}
@@ -35,13 +24,28 @@ func init() {
 	maxMemoryForMultipartForm = 32 * 1024 * 1024
 }
 
-// Sets the ParameterValueProvider that sparkle will use as data for unmarshalling paramters
+// A map type that has both string keys and values
+type KeyValueStringMap map[string]string
+
+// ParameterValueProvider is an interface which when implemented provides
+// the mechinism neccisary for (*Context).UnmarshalParameters to get data
+// for use in unmarshalling parameters.
+type ParameterValueProvider interface {
+	Values(c *Context) (KeyValueStringMap, error)
+}
+
+// SetParameterValueProvider sets the ParameterValueProvider that sparkle 
+// will use as data for unmarshalling paramters
 func SetParameterValueProvider(p ParameterValueProvider) {
 	currentValueProvider = p
 }
 
-// Provides a KeyValueStringMap of the Query String and Form parameters
-func (p *ParameterValueProvider) Values(c *Context) (KeyValueStringMap, error) {
+// FormValueProvider is a ParameterValueProvider that obtains data from
+// the request query string and form paramaeters
+type FormValueProvider struct{}
+
+// Values provides a KeyValueStringMap of the Query String and Form parameters
+func (p *FormValueProvider) Values(c *Context) (KeyValueStringMap, error) {
 	request := c.Request()
 	if request == nil {
 		// Should never happen
