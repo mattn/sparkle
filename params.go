@@ -7,19 +7,41 @@ import (
 	"strconv"
 )
 
-type KeyValueStringMap map[string]string
-type ParamValueProvider func(c *Context) (KeyValueStringMap, error)
-
 var ErrNilUnmarshalTarget = errors.New("Passed nil object as unmarshal target")
 var ErrNotPointerTarget = errors.New("Target is not a pointer")
 var ErrNotStructTarget = errors.New("Target pointer does not point to struct")
 var ErrCouldNotGetContextRequest = errors.New("Could not obtain request from context")
 var ErrUnsupportedType = errors.New("Can not unmarshall to field type as it is unsupported")
 
-var maxMemoryForMultipartForm int64
-var currentValueProvider ParamValueProvider = FormValueProvider
+// A map type that has both string keys and values
+type KeyValueStringMap map[string]string
 
-func FormValueProvider(c *Context) (KeyValueStringMap, error) {
+// An interface that supplies UnmarshalParameters with the data in which
+// to unmarshal
+type ParameterValueProvider interface {
+	Values(c *Context) (KeyValueStringMap, error)
+}
+
+// A ValueProvider that provides values from the current request query string and
+// form inputs
+type FormValueProvider struct{}
+
+var maxMemoryForMultipartForm int64
+var currentValueProvider ParameterValueProvider
+
+func init() {
+	currentValueProvider = &FormValueProvider{}
+	// Default to 32 MB
+	maxMemoryForMultipartForm = 32 * 1024 * 1024
+}
+
+// Sets the ParameterValueProvider that sparkle will use as data for unmarshalling paramters
+func SetParameterValueProvider(p ParameterValueProvider) {
+	currentValueProvider = p
+}
+
+// Provides a KeyValueStringMap of the Query String and Form parameters
+func (p *ParameterValueProvider) Values(c *Context) (KeyValueStringMap, error) {
 	request := c.Request()
 	if request == nil {
 		// Should never happen
