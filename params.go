@@ -3,6 +3,7 @@ package sparkle
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"reflect"
 	"strconv"
 )
@@ -24,14 +25,11 @@ func init() {
 	maxMemoryForMultipartForm = 32 * 1024 * 1024
 }
 
-// A map type that has both string keys and values
-type KeyValueStringMap map[string]string
-
 // ParameterValueProvider is an interface which when implemented provides
 // the mechinism neccisary for (*Context).UnmarshalParameters to get data
 // for use in unmarshalling parameters.
 type ParameterValueProvider interface {
-	Values(c *Context) (KeyValueStringMap, error)
+	Values(c *Context) (url.Values, error)
 }
 
 // SetParameterValueProvider sets the ParameterValueProvider that sparkle 
@@ -44,8 +42,8 @@ func SetParameterValueProvider(p ParameterValueProvider) {
 // the request query string and form paramaeters
 type FormValueProvider struct{}
 
-// Values provides a KeyValueStringMap of the Query String and Form parameters
-func (p *FormValueProvider) Values(c *Context) (KeyValueStringMap, error) {
+// Values provides a url.Values of the Query String and Form parameters
+func (p *FormValueProvider) Values(c *Context) (url.Values, error) {
 	request := c.Request()
 	if request == nil {
 		// Should never happen
@@ -121,7 +119,7 @@ func (c *Context) UnmarshalParameters(v interface{}) error {
 
 	rt := reflect.ValueOf(v).Elem()
 
-	valueMap, err := currentValueProvider(c)
+	valueMap, err := currentValueProvider.Values(c)
 	if err != nil {
 		return err
 	}
